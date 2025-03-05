@@ -1,12 +1,17 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, Alert, Share, StyleSheet } from 'react-native';
+import React, { useRef } from 'react';
+import { View, Text, TouchableOpacity, Alert, Share, StyleSheet, ScrollView } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import { useWorkout } from '../context/WorkoutContext';
 import ShareStreak from '../components/streak/ShareStreak';
+import WorkoutHistory from '../components/workout/WorkoutHistory';
+import ViewShot from 'react-native-view-shot';
+import { supabase } from '../utils/supabase';
+import * as FileSystem from 'expo-file-system';
 
 export default function ProfileScreen() {
   const { session, signOut } = useAuth();
-  const { streak } = useWorkout();
+  const { streak, attendanceHistory, workouts } = useWorkout();
+  const viewShotRef = useRef<ViewShot>(null);
   
   const handleSignOut = async () => {
     try {
@@ -16,21 +21,9 @@ export default function ProfileScreen() {
     }
   };
   
-  const handleShare = async () => {
-    try {
-      // In a real app, you would generate an image here
-      // For demo purposes, just share text
-      const result = await Share.share({
-        message: `I'm on a ${streak?.current_streak || 0} day gym streak with GymTrack! 💪`,
-        title: 'My Gym Streak',
-      });
-    } catch (error: any) {
-      Alert.alert('Error', error.message);
-    }
-  };
-  
   return (
     <View style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
       <Text style={styles.header}>Profile</Text>
       
       <View style={styles.card}>
@@ -44,8 +37,8 @@ export default function ProfileScreen() {
           <Text style={styles.signOutButtonText}>Sign Out</Text>
         </TouchableOpacity>
       </View>
-      
-      <ShareStreak streak={streak} onShare={handleShare} />
+
+        <ShareStreak streak={streak} />
       
       <View style={styles.card}>
         <Text style={styles.cardTitle}>App Statistics</Text>
@@ -69,6 +62,12 @@ export default function ProfileScreen() {
           </Text>
         </View>
       </View>
+
+      {/* Add the new WorkoutHistory component */}
+      <WorkoutHistory 
+        attendanceHistory={attendanceHistory}
+        workouts={workouts}
+      />
       
       <View style={styles.card}>
         <Text style={styles.versionText}>
@@ -78,6 +77,7 @@ export default function ProfileScreen() {
           Developed with Expo and React Native
         </Text>
       </View>
+      </ScrollView>
     </View>
   );
 }
@@ -95,6 +95,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
     padding: 24, // p-6 (6 * 4)
+  },
+  scrollContent: {
+    paddingBottom: 20, // Add extra padding at the bottom for better scrolling
   },
   header: {
     fontSize: 24, // text-2xl
