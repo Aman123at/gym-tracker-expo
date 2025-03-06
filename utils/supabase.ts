@@ -49,6 +49,7 @@ export type Exercise = {
   default_sets?: number;
   default_reps?: number;
   workout_id?: string; // When associated with a workout
+  exercise_id?: string;
   sets?: number;
   reps?: number;
   created_at?: string;

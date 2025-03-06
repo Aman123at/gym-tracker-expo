@@ -321,7 +321,7 @@ export default function WorkoutScreen() {
                     </Text>
                   ) : (
                     <View style={styles.exercisesContainer}>
-                      {workoutExercises.map((exercise, index) => (
+                      {workoutExercises.map((exercise:Exercise, index:number) => (
                         <View key={index} style={styles.exerciseRow}>
                           <View style={styles.exerciseInfo}>
                             <Text style={styles.exerciseName}>{exercise.name}</Text>
@@ -332,7 +332,7 @@ export default function WorkoutScreen() {
                                 <View style={styles.counterContainer}>
                                   <TouchableOpacity 
                                     style={styles.counterButton}
-                                    onPress={() => updateExerciseSets(exercise.id, Math.max(1, exercise.sets - 1))}
+                                    onPress={() => updateExerciseSets(exercise.id, Math.max(1, (exercise.sets || 1) - 1))}
                                   >
                                     <Ionicons name="remove" size={16} color="#F8FAFC" />
                                   </TouchableOpacity>
@@ -341,7 +341,7 @@ export default function WorkoutScreen() {
                                   
                                   <TouchableOpacity 
                                     style={styles.counterButton}
-                                    onPress={() => updateExerciseSets(exercise.id, exercise.sets + 1)}
+                                    onPress={() => updateExerciseSets(exercise.id, (exercise.sets || 1) + 1)}
                                   >
                                     <Ionicons name="add" size={16} color="#F8FAFC" />
                                   </TouchableOpacity>
@@ -353,7 +353,7 @@ export default function WorkoutScreen() {
                                 <View style={styles.counterContainer}>
                                   <TouchableOpacity 
                                     style={styles.counterButton}
-                                    onPress={() => updateExerciseReps(exercise.id, Math.max(1, exercise.reps - 1))}
+                                    onPress={() => updateExerciseReps(exercise.id, Math.max(1, (exercise.reps || 1) - 1))}
                                   >
                                     <Ionicons name="remove" size={16} color="#F8FAFC" />
                                   </TouchableOpacity>
@@ -362,7 +362,7 @@ export default function WorkoutScreen() {
                                   
                                   <TouchableOpacity 
                                     style={styles.counterButton}
-                                    onPress={() => updateExerciseReps(exercise.id, exercise.reps + 1)}
+                                    onPress={() => updateExerciseReps(exercise.id, (exercise.reps || 1) + 1)}
                                   >
                                     <Ionicons name="add" size={16} color="#F8FAFC" />
                                   </TouchableOpacity>
@@ -585,6 +585,7 @@ const styles = StyleSheet.create({
   },
   exercisesContainer: {
     marginTop: 8,
+    marginBottom:15
   },
   exerciseRow: {
     flexDirection: 'row',

@@ -45,12 +45,12 @@ export default function ProfileScreen() {
         
         <View style={styles.statRow}>
           <Text style={styles.statLabel}>Current Streak</Text>
-          <Text style={styles.statValue}>{streak?.current_streak || 0} days</Text>
+          <Text style={styles.statValue}>{streak?.current_streak || 0} {(streak?.current_streak || 0) === 1 ? 'Day':'Days'}</Text>
         </View>
         
         <View style={styles.statRow}>
           <Text style={styles.statLabel}>Longest Streak</Text>
-          <Text style={styles.statValue}>{streak?.max_streak || 0} days</Text>
+          <Text style={styles.statValue}>{streak?.max_streak || 0} {(streak?.max_streak || 0) === 1 ? 'Day':'Days'}</Text>
         </View>
         
         <View style={[styles.statRow, styles.lastStatRow]}>

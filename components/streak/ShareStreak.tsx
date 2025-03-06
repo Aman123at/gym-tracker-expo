@@ -124,7 +124,7 @@ export default function ShareStreak({ streak }: ShareStreakProps) {
               <View style={styles.statBox}>
                 <Text style={styles.statTitle}>CURRENT</Text>
                 <Text style={styles.statValue}>{streak?.current_streak || 0}</Text>
-                <Text style={styles.statUnit}>days</Text>
+                <Text style={styles.statUnit}>{(streak?.current_streak || 0) === 1 ? 'Day':'Days'}</Text>
               </View>
               
               <View style={styles.statDivider} />
@@ -132,7 +132,7 @@ export default function ShareStreak({ streak }: ShareStreakProps) {
               <View style={styles.statBox}>
                 <Text style={styles.statTitle}>LONGEST</Text>
                 <Text style={styles.statValue}>{getLongestStreak()}</Text>
-                <Text style={styles.statUnit}>days</Text>
+                <Text style={styles.statUnit}>{getLongestStreak() === 1 ? 'Day':'Days'}</Text>
               </View>
             </View>
             

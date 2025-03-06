@@ -1,26 +1,12 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Workout } from '../../utils/supabase';
+import { Exercise, Workout } from '../../utils/supabase';
 
 type DailyWorkoutProps = {
   workout: Workout;
 };
 
 export default function DailyWorkout({ workout }: DailyWorkoutProps) {
-  // Example exercises for each body part
-  const exercisesByBodyPart: Record<string, string[]> = {
-    'Legs': ['Squats', 'Lunges', 'Leg Press', 'Deadlifts', 'Calf Raises'],
-    'Chest': ['Bench Press', 'Push-ups', 'Chest Flys', 'Incline Press', 'Dips'],
-    'Back': ['Pull-ups', 'Rows', 'Lat Pulldowns', 'Deadlifts', 'Face Pulls'],
-    'Shoulders': ['Shoulder Press', 'Lateral Raises', 'Front Raises', 'Shrugs', 'Upright Rows'],
-    'Arms': ['Bicep Curls', 'Tricep Extensions', 'Hammer Curls', 'Skull Crushers', 'Chin-ups'],
-    'Core': ['Planks', 'Crunches', 'Leg Raises', 'Russian Twists', 'Ab Rollouts'],
-  };
-
-  // Get exercises for the current body part or use default
-  const exercises = exercisesByBodyPart[workout.body_part] || 
-    ['Exercise 1', 'Exercise 2', 'Exercise 3', 'Exercise 4', 'Exercise 5'];
-
   return (
     <View style={styles.container}>
     <View style={styles.header}>
@@ -28,12 +14,12 @@ export default function DailyWorkout({ workout }: DailyWorkoutProps) {
     </View>
     
     <View style={styles.content}>
-      {exercises.map((exercise, index) => (
+      {workout.exercises ? workout.exercises.map((exercise:Exercise, index) => (
         <View key={index} style={styles.exerciseRow}>
-          <Text style={styles.exerciseName}>{exercise}</Text>
-          <Text style={styles.exerciseReps}>3 × 12</Text>
+          <Text style={styles.exerciseName}>{exercise.name}</Text>
+          <Text style={styles.exerciseReps}>{exercise.sets || 3} × {exercise.reps || 12}</Text>
         </View>
-      ))}
+      )):null}
       
       <Text style={styles.instructions}>
         Complete 3 sets of 12 reps for each exercise, rest 60-90 seconds between sets.

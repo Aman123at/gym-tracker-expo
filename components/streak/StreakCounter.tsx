@@ -37,7 +37,7 @@ export default function StreakCounter({ streak }: StreakCounterProps) {
             >
               {streak?.current_streak || 0}
             </Animated.Text>
-            <Text style={styles.daysText}>days</Text>
+            <Text style={styles.daysText}>{(streak?.current_streak || 0) === 1 ? 'Day':'Days'}</Text>
           </View>
         </View>
         
