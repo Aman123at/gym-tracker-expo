@@ -26,7 +26,7 @@ export default function Signup({ navigation }: { navigation: any }) {
       
       Alert.alert(
         'Registration Successful',
-        'Please check your email for the confirmation link',
+        '',
         [
           {
             text: 'OK',
