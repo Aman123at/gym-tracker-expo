@@ -12,9 +12,13 @@ type ShareStreakProps = {
   streak: Streak | null;
 };
 
+// Define the ViewShot ref type with capture method
+interface ViewShotType extends React.Component {
+  capture: () => Promise<string>;
+}
 
 export default function ShareStreak({ streak }: ShareStreakProps) {
-  const viewShotRef = useRef<ViewShot>(null);
+  const viewShotRef = useRef<ViewShotType>(null);
   const { session } = useAuth();
 
   // Get the longest streak (either max_streak or current_streak if it's higher)
@@ -35,6 +39,10 @@ export default function ShareStreak({ streak }: ShareStreakProps) {
       }
       
       const uri = await viewShotRef.current.capture();
+      
+      if (!uri) {
+        throw new Error('Failed to capture image');
+      }
       
       // 2. Generate a unique filename
       const timestamp = Date.now();
