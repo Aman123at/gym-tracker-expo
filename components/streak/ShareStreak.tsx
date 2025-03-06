@@ -7,7 +7,6 @@ import ViewShot from 'react-native-view-shot';
 // import { supabase } from '../utils/supabase';
 import * as FileSystem from 'expo-file-system';
 import { useAuth } from '../../context/AuthContext';
-import Svg, { Path, Circle, G } from 'react-native-svg';
 
 type ShareStreakProps = {
   streak: Streak | null;

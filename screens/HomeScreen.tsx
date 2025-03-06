@@ -1,16 +1,25 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, StyleSheet } from 'react-native';
 import { useWorkout } from '../context/WorkoutContext';
 import DailyWorkout from '../components/workout/DailyWorkout';
 import StreakCounter from '../components/streak/StreakCounter';
 import { Ionicons } from '@expo/vector-icons';
 import { Workout } from '../utils/supabase';
+import { useFocusEffect } from '@react-navigation/native';
 
 export default function HomeScreen({ navigation }: { navigation: any }) {
-  const { isLoading, todayWorkout, streak, attendanceHistory, markAttendance, workouts } = useWorkout();
+  const { isLoading, todayWorkout, streak, attendanceHistory, markAttendance, workouts, loadWorkouts  } = useWorkout();
   const today = new Date().toISOString().split('T')[0];
   const todayIdx = new Date().getDay()
   const isMarkedToday = attendanceHistory.some(a => a.date === today);
+
+  useFocusEffect(
+    useCallback(() => {
+      // Reload workout data when the screen comes into focus
+      loadWorkouts();
+      
+    }, [])
+  );
 
   if (isLoading) {
     return (

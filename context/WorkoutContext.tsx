@@ -2,18 +2,25 @@ import React, { createContext, useState, useEffect, useContext } from 'react';
 import { Alert } from 'react-native';
 import { supabase } from '../utils/supabase';
 import { useAuth } from './AuthContext';
-import { Workout, Attendance, Streak } from '../utils/supabase';
+import { Workout, Attendance, Streak, Exercise, BodyPart } from '../utils/supabase';
 
 type WorkoutContextType = {
   workouts: Workout[];
   todayWorkout: Workout | null;
   streak: Streak | null;
   attendanceHistory: Attendance[];
+  bodyParts: BodyPart[];
+  exercises: Exercise[];
   isLoading: boolean;
   markAttendance: (date: string) => Promise<void>;
   updateWorkout: (workout: Workout) => Promise<void>;
   getBodyPartForDay: (dayOfWeek: number) => string;
   shareStreak: () => void;
+  fetchExercisesByBodyPart: (bodyPart: string) => Promise<Exercise[]>;
+  addExerciseToWorkout: (workoutId: string, exerciseId: string) => Promise<void>;
+  removeExerciseFromWorkout: (exerciseId: string) => Promise<void>;
+  updateExerciseDetails: (exercise: Exercise) => Promise<void>;
+  loadWorkouts:()=>Promise<void>;
 };
 
 const defaultBodyParts = [
@@ -26,16 +33,57 @@ const defaultBodyParts = [
   'Core', // Saturday
 ];
 
+  // Map of default exercises for each body part (3-5 per body part)
+  const defaultExercisesByBodyPart = {
+    'Legs': [
+      { name: 'Squats', sets: 3, reps: 12 },
+      { name: 'Lunges', sets: 3, reps: 10 },
+      { name: 'Leg Press', sets: 4, reps: 10 }
+    ],
+    'Chest': [
+      { name: 'Bench Press', sets: 4, reps: 10 },
+      { name: 'Push-ups', sets: 3, reps: 12 },
+      { name: 'Chest Flys', sets: 3, reps: 12 }
+    ],
+    'Back': [
+      { name: 'Pull-ups', sets: 3, reps: 8 },
+      { name: 'Rows', sets: 3, reps: 12 },
+      { name: 'Lat Pulldowns', sets: 3, reps: 10 }
+    ],
+    'Shoulders': [
+      { name: 'Shoulder Press', sets: 3, reps: 10 },
+      { name: 'Lateral Raises', sets: 3, reps: 12 },
+      { name: 'Front Raises', sets: 3, reps: 12 }
+    ],
+    'Arms': [
+      { name: 'Bicep Curls', sets: 3, reps: 12 },
+      { name: 'Tricep Extensions', sets: 3, reps: 12 },
+      { name: 'Hammer Curls', sets: 3, reps: 10 }
+    ],
+    'Core': [
+      { name: 'Planks', sets: 3, reps: 30 }, // seconds
+      { name: 'Crunches', sets: 3, reps: 15 },
+      { name: 'Russian Twists', sets: 3, reps: 20 }
+    ]
+  };
+
 const WorkoutContext = createContext<WorkoutContextType>({
   workouts: [],
   todayWorkout: null,
   streak: null,
   attendanceHistory: [],
+  bodyParts: [],
+  exercises: [],
   isLoading: true,
   markAttendance: async () => {},
   updateWorkout: async () => {},
   getBodyPartForDay: () => '',
   shareStreak: () => {},
+  fetchExercisesByBodyPart: async () => [],
+  addExerciseToWorkout: async () => {},
+  removeExerciseFromWorkout: async () => {},
+  updateExerciseDetails: async () => {},
+  loadWorkouts:async () => {},
 });
 
 export const useWorkout = () => useContext(WorkoutContext);
@@ -46,6 +94,8 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [todayWorkout, setTodayWorkout] = useState<Workout | null>(null);
   const [streak, setStreak] = useState<Streak | null>(null);
   const [attendanceHistory, setAttendanceHistory] = useState<Attendance[]>([]);
+  const [bodyParts, setBodyParts] = useState<BodyPart[]>([]);
+  const [exercises, setExercises] = useState<Exercise[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -57,6 +107,8 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setTodayWorkout(null);
       setStreak(null);
       setAttendanceHistory([]);
+      setBodyParts([]);
+      setExercises([]);
       setIsLoading(false);
     }
   }, [session]);
@@ -69,6 +121,8 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
         loadWorkouts(),
         loadAttendance(),
         loadStreak(),
+        loadBodyParts(),
+        loadExercises(),
       ]);
 
     } catch (error: any) {
@@ -79,24 +133,100 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   }
 
-  async function loadWorkouts() {
+  async function loadBodyParts() {
     const { data, error } = await supabase
-      .from('workouts')
-      .select(`
-        *,
-        exercises(*)
-      `)
-      .eq('user_id', session?.user.id);
+      .from('body_parts')
+      .select('*')
+      .order('name', { ascending: true });
 
     if (error) throw error;
-        // console.log("LOAD WORKOUTS>>",data,error)
-    // If user has no workouts, create default ones
+    
     if (!data || data.length === 0) {
-      await createDefaultWorkouts();
-    } else {
-      // console.log("INSIDE SET WORKOUTS>>",data)
-      setWorkouts(data as Workout[]);
-      setTodayWorkout(getTodayWorkout(data));
+      return loadBodyParts();
+    }
+    
+    setBodyParts(data as BodyPart[]);
+  }
+
+  async function loadExercises() {
+    const { data, error } = await supabase
+      .from('exercises')
+      .select('*')
+      .order('name', { ascending: true });
+
+    if (error) throw error;
+    
+    if (!data || data.length === 0) {
+      return loadExercises();
+    }
+    
+    setExercises(data as Exercise[]);
+  }
+
+  async function loadWorkouts() {
+    try {
+      // First, fetch all workouts for the user
+      const { data: workoutsData, error: workoutsError } = await supabase
+        .from('workouts')
+        .select('*')
+        .eq('user_id', session?.user.id);
+  
+      if (workoutsError) throw workoutsError;
+      
+      // If user has no workouts, create default ones
+      if (!workoutsData || workoutsData.length === 0) {
+        await createDefaultWorkouts();
+        return;
+      }
+      
+      // Now we'll fetch workout exercises for each workout through the junction table
+      const workoutsWithExercises = await Promise.all(workoutsData.map(async (workout) => {
+        // Get workout exercises from the junction table
+        const { data: workoutExercisesData, error: workoutExercisesError } = await supabase
+          .from('workout_exercises')
+          .select(`
+            id,
+            sets,
+            reps,
+            exercise:exercise_id (
+              id,
+              name,
+              body_part,
+              default_sets,
+              default_reps
+            )
+          `)
+          .eq('workout_id', workout.id);
+        
+        if (workoutExercisesError) throw workoutExercisesError;
+        
+        // Format the exercises data
+        const exercises = workoutExercisesData.map((we) => ({
+          id: we.id, // This is the workout_exercise junction id
+          workout_id: workout.id,
+          name: we.exercise.name,
+          body_part: we.exercise.body_part,
+          sets: we.sets,
+          reps: we.reps,
+          exercise_id: we.exercise.id // Keep reference to the original exercise
+        }));
+        
+        // Return the workout with its exercises
+        return {
+          ...workout,
+          exercises
+        };
+      }));
+      
+      // Update state with the workouts and exercises
+      setWorkouts(workoutsWithExercises);
+      // Set today's workout
+      const today = getTodayWorkout(workoutsWithExercises);
+      setTodayWorkout(today);
+      // setTodayWorkout(getTodayWorkout(workoutsWithExercises));
+    } catch (error) {
+      console.error('Error loading workouts:', error);
+      throw error;
     }
   }
 
@@ -105,13 +235,60 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
     
     // Create a workout for each day of the week (except Sunday)
     for (let day = 1; day <= 6; day++) {
-      await supabase
+      const bodyPart = defaultBodyParts[day];
+      
+      // Insert the workout
+      const { data: workoutData, error: workoutError } = await supabase
         .from('workouts')
         .insert({
           user_id: userId,
           day_of_week: day,
-          body_part: defaultBodyParts[day],
-        });
+          body_part: bodyPart,
+        })
+        .select('id')
+        .single();
+        
+      if (workoutError) {
+        console.error(`Error creating workout for day ${day}:`, workoutError);
+        continue; // Skip to next day if there's an error
+      }
+      
+      const workoutId = workoutData.id;
+      
+      // Get exercise data for the body part
+      const { data: exercisesData, error: exercisesError } = await supabase
+        .from('exercises')
+        .select('id, name')
+        .eq('body_part', bodyPart)
+        .limit(5);
+        
+      if (exercisesError || !exercisesData || exercisesData.length === 0) {
+        console.error(`Error or no exercises found for ${bodyPart}:`, exercisesError);
+        continue;
+      }
+      
+      // Get default exercise settings for this body part
+      const defaultExercises = defaultExercisesByBodyPart[bodyPart] || [];
+      
+      // Add default exercises to the workout
+      for (let i = 0; i < Math.min(exercisesData.length, defaultExercises.length); i++) {
+        const exercise = exercisesData[i];
+        const defaultExercise = defaultExercises[i];
+        
+        // Add to workout_exercises junction table
+        const { error: insertError } = await supabase
+          .from('workout_exercises')
+          .insert({
+            workout_id: workoutId,
+            exercise_id: exercise.id,
+            sets: defaultExercise.sets,
+            reps: defaultExercise.reps
+          });
+          
+        if (insertError) {
+          console.error(`Error adding exercise ${exercise.name} to workout:`, insertError);
+        }
+      }
     }
 
     // Reload workouts
@@ -172,17 +349,93 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   }
 
-  function getTodayWorkout(workoutData:Workout[]): Workout | null {
+  function getTodayWorkout(workoutData: Workout[]): Workout | null {
     const today = new Date();
     const dayOfWeek = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
     
     if (dayOfWeek === 0) return null; // Sunday is rest day
-    return workoutData.find(w => w.day_of_week === dayOfWeek) || null;
+    
+    const todayWorkout = workoutData.find(w => w.day_of_week === dayOfWeek);
+    
+    return todayWorkout || null;
   }
 
   function getBodyPartForDay(dayOfWeek: number): string {
     const workout = workouts.find(w => w.day_of_week === dayOfWeek);
     return workout ? workout.body_part : defaultBodyParts[dayOfWeek];
+  }
+
+  async function fetchExercisesByBodyPart(bodyPart: string): Promise<Exercise[]> {
+    try {
+      const { data, error } = await supabase
+        .from('exercises')
+        .select('*')
+        .eq('body_part', bodyPart)
+        .order('name', { ascending: true });
+        
+      if (error) throw error;
+      
+      // Transform data to match Exercise type
+      return data.map(exercise => ({
+        id: exercise.id,
+        name: exercise.name,
+        body_part: exercise.body_part,
+        default_sets: exercise.default_sets,
+        default_reps: exercise.default_reps
+      }));
+    } catch (error) {
+      console.error('Error fetching exercises by body part:', error);
+      throw error;
+    }
+  }
+
+  async function addExerciseToWorkout(workoutId: string, exerciseId: string) {
+    const exercise = exercises.find(e => e.id === exerciseId);
+    
+    if (!exercise) {
+      throw new Error('Exercise not found');
+    }
+    
+    const { error } = await supabase
+      .from('workout_exercises')
+      .insert({
+        workout_id: workoutId,
+        exercise_id: exerciseId,
+        sets: exercise.default_sets || 3,
+        reps: exercise.default_reps || 12
+      });
+      
+    if (error) throw error;
+    
+    // Reload workouts to get updated data
+    await loadWorkouts();
+  }
+
+  async function removeExerciseFromWorkout(exerciseId: string) {
+    const { error } = await supabase
+      .from('workout_exercises')
+      .delete()
+      .eq('id', exerciseId);
+      
+    if (error) throw error;
+    
+    // Reload workouts to get updated data
+    await loadWorkouts();
+  }
+
+  async function updateExerciseDetails(exercise: Exercise) {
+    const { error } = await supabase
+      .from('workout_exercises')
+      .update({
+        sets: exercise.sets,
+        reps: exercise.reps
+      })
+      .eq('id', exercise.id);
+      
+    if (error) throw error;
+    
+    // Reload workouts to get updated data
+    await loadWorkouts();
   }
 
   async function markAttendance(date: string) {
@@ -309,24 +562,52 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }
 
   async function updateWorkout(workout: Workout) {
-    const { data, error } = await supabase
-      .from('workouts')
-      .update({
-        body_part: workout.body_part,
-      })
-      .eq('id', workout.id)
-      .select('*')
-      .single();
-    
-    if (error) throw error;
-    
-    // Update local state
-    setWorkouts(prev => 
-      prev.map(w => w.id === workout.id ? { ...w, ...data } : w)
-    );
-    
-    if (workout.day_of_week === new Date().getDay()) {
-      setTodayWorkout({ ...todayWorkout, ...data } as Workout);
+    try {
+      // Update the workout in the database
+      const { data, error } = await supabase
+        .from('workouts')
+        .update({
+          body_part: workout.body_part,
+        })
+        .eq('id', workout.id)
+        .select('*')
+        .single();
+      
+      if (error) throw error;
+      
+      // If exercises are provided, update the workout exercises
+      if (workout.exercises) {
+        // First, remove all existing workout_exercises for this workout
+        const { error: deleteError } = await supabase
+          .from('workout_exercises')
+          .delete()
+          .eq('workout_id', workout.id);
+          
+        if (deleteError) throw deleteError;
+        
+        // Now add the new workout exercises
+        for (const exercise of workout.exercises) {
+          const { error: insertError } = await supabase
+            .from('workout_exercises')
+            .insert({
+              workout_id: workout.id,
+              exercise_id: exercise.exercise_id || exercise.id, // Use exercise_id if available
+              sets: exercise.sets,
+              reps: exercise.reps
+            });
+            
+          if (insertError) {
+            console.error('Error inserting exercise:', insertError);
+            throw insertError;
+          }
+        }
+      }
+      
+      // After updating the database, reload the workouts
+      await loadWorkouts();
+    } catch (error) {
+      console.error('Error updating workout:', error);
+      throw error;
     }
   }
 
@@ -339,6 +620,17 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
     Alert.alert('Sharing', `Ready to share your ${streak.current_streak} day streak!`);
   }
 
+  // useEffect(() => {
+  //   // Subscribe to focus events to refresh data when screens are focused
+  //   const unsubscribe = navigation?.addListener('focus', () => {
+  //     if (session?.user) {
+  //       loadWorkouts();
+  //     }
+  //   });
+  
+  //   return unsubscribe;
+  // }, [navigation]);
+
   return (
     <WorkoutContext.Provider
       value={{
@@ -346,11 +638,18 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
         todayWorkout,
         streak,
         attendanceHistory,
+        bodyParts,
+        exercises,
         isLoading,
         markAttendance,
         updateWorkout,
         getBodyPartForDay,
         shareStreak,
+        fetchExercisesByBodyPart,
+        addExerciseToWorkout,
+        removeExerciseFromWorkout,
+        updateExerciseDetails,
+        loadWorkouts
       }}
     >
       {children}

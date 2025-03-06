@@ -36,23 +36,41 @@ export type User = {
   created_at: string;
 };
 
+export type BodyPart = {
+  id: string;
+  name: string;
+  created_at?: string;
+};
+
+export type Exercise = {
+  id: string;
+  name: string;
+  body_part: string;
+  default_sets?: number;
+  default_reps?: number;
+  workout_id?: string; // When associated with a workout
+  sets?: number;
+  reps?: number;
+  created_at?: string;
+};
+
 export type Workout = {
   id: string;
   user_id: string;
   day_of_week: number; // 0 = Sunday, 1 = Monday, etc.
   body_part: string;
-  exercises: Exercise[];
-  created_at: string;
-  updated_at: string;
+  exercises?: Exercise[];
+  created_at?: string;
+  updated_at?: string;
 };
 
-export type Exercise = {
+export type WorkoutExercise = {
   id: string;
   workout_id: string;
-  name: string;
+  exercise_id: string;
   sets: number;
   reps: number;
-  created_at: string;
+  created_at?: string;
 };
 
 export type Attendance = {
@@ -60,8 +78,8 @@ export type Attendance = {
   user_id: string;
   date: string;
   attended: boolean;
-  created_at: string;
-  updated_at: string;
+  created_at?: string;
+  updated_at?: string;
 };
 
 export type Streak = {
@@ -71,6 +89,6 @@ export type Streak = {
   max_streak: number;
   start_date: string;
   last_attendance_date: string;
-  created_at: string;
-  updated_at: string;
+  created_at?: string;
+  updated_at?: string;
 };
