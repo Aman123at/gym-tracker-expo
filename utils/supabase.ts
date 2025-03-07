@@ -52,6 +52,7 @@ export type Exercise = {
   exercise_id?: string;
   sets?: number;
   reps?: number;
+  tutorialurls?: string[]; // Array of YouTube video URLs
   created_at?: string;
 };
 

@@ -13,6 +13,7 @@ import HomeScreen from './screens/HomeScreen';
 import CalendarScreen from './screens/CalendarScreen';
 import WorkoutScreen from './screens/WorkoutScreen';
 import ProfileScreen from './screens/ProfileScreen';
+import TutorialScreen from './screens/TutorialScreen';
 import AuthScreen from './screens/AuthScreen';
 import { ActivityIndicator, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import Login from './components/auth/Login';
@@ -49,6 +50,7 @@ function AppTabs() {
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Calendar" component={CalendarScreen} />
       <Tab.Screen name="Workout" component={WorkoutScreen} />
+      <Tab.Screen name="Tutorials" component={TutorialScreen} />
       <Tab.Screen name="Profile" component={ProfileScreen} />
     </Tab.Navigator>
   );

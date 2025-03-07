@@ -41,6 +41,8 @@ export default function BottomNav({ state, descriptors, navigation }: BottomNavP
           iconName = isFocused ? 'calendar' : 'calendar-outline';
         } else if (route.name === 'Workout') {
           iconName = isFocused ? 'fitness' : 'fitness-outline';
+        } else if (route.name === 'Tutorials') {
+          iconName = isFocused ? 'play-circle' : 'play-circle-outline';
         } else if (route.name === 'Profile') {
           iconName = isFocused ? 'person' : 'person-outline';
         }

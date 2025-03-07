@@ -16,8 +16,9 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
   useFocusEffect(
     useCallback(() => {
       // Reload workout data when the screen comes into focus
-      loadWorkouts();
-      
+      if(workouts.length===0 || !todayWorkout){
+        loadWorkouts();
+      }
     }, [])
   );
 
