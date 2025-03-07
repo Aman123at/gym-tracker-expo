@@ -12,6 +12,7 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+    "scheme": "gymtrack",
     "ios": {
       "supportsTablet": true
     },
@@ -19,7 +20,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.mycompany.gymtrack"
     },
     "web": {
       "favicon": "./assets/favicon.png"
