@@ -6,6 +6,7 @@ import StreakCounter from '../components/streak/StreakCounter';
 import { Ionicons } from '@expo/vector-icons';
 import { Workout } from '../utils/supabase';
 import { useFocusEffect } from '@react-navigation/native';
+import GradientHeader from '../components/GradientHeader';
 
 export default function HomeScreen({ navigation }: { navigation: any }) {
   const { isLoading, todayWorkout, streak, attendanceHistory, markAttendance, workouts, loadWorkouts  } = useWorkout();
@@ -24,8 +25,11 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
 
   if (isLoading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size={36} color="#6366F1" />
+      <View style={styles.container}>
+        <GradientHeader title="GymTrack" subtitle="Track your fitness journey" />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size={36} color="#6366F1" />
+        </View>
       </View>
     );
   }
@@ -44,71 +48,71 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
   }
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.content}>
-        <Text style={styles.title}>
-          GymTrack
-        </Text>
-        
-        <StreakCounter streak={streak} />
-        
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Today's Workout</Text>
+    <View style={styles.container}>
+      <GradientHeader title="GymTrack" subtitle="Track your fitness journey" />
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <View style={styles.content}>
           
-          <TouchableOpacity 
-            style={[styles.markButton, isMarkedToday && styles.markedButton]}
-            onPress={() => isMarkedToday ? {} : markAttendance(today)}
-          >
-            {isMarkedToday ? (
-              <View style={styles.buttonContent}>
-                <Ionicons name="checkmark" size={18} color="white" />
-                <Text style={styles.buttonText}>Completed</Text>
-              </View>
-            ) : (
-              <View style={styles.buttonContent}>
-                <Ionicons name="fitness" size={18} color="white" />
-                <Text style={styles.buttonText}>Mark as Done</Text>
-              </View>
-            )}
-          </TouchableOpacity>
-        </View>
-        
-        {todayWorkout ? (
-          <DailyWorkout workout={todayWorkout} />
-        ) : (
-          <View style={styles.restDayCard}>
-            <Text style={styles.restDayText}>
-              Today is Rest Day! 
-              Take time to recover and prepare for tomorrow's workout.
-            </Text>
-          </View>
-        )}
-        
-        <View style={styles.scheduleCard}>
-          <Text style={styles.scheduleTitle}>Weekly Schedule</Text>
+          <StreakCounter streak={streak} />
           
-          {Array.from({ length: 7 }).map((_, i) => {
-            const dayIndex = (i + 1) % 7; // Start with Monday (1) at index 0
-            const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-            const dayName = dayNames[dayIndex];
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Today's Workout</Text>
             
-            return (
-              <View key={i} style={todayIdx===dayIndex ? styles.rowHighlighted :styles.scheduleRow}>
-                <Text style={styles.dayName}>{dayName}</Text>
-                <Text style={styles.bodyPart}>{getWeeklyScheduleBodyPart(dayIndex)}</Text>
-              </View>
-            );
-          })}
+            <TouchableOpacity 
+              style={[styles.markButton, isMarkedToday && styles.markedButton]}
+              onPress={() => isMarkedToday ? {} : markAttendance(today)}
+            >
+              {isMarkedToday ? (
+                <View style={styles.buttonContent}>
+                  <Ionicons name="checkmark" size={18} color="white" />
+                  <Text style={styles.buttonText}>Completed</Text>
+                </View>
+              ) : (
+                <View style={styles.buttonContent}>
+                  <Ionicons name="fitness" size={18} color="white" />
+                  <Text style={styles.buttonText}>Mark as Done</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          </View>
           
-          <TouchableOpacity 
-            style={styles.customizeButton}
-            onPress={() => navigation.navigate('Workout')}
-          >
-            <Text style={styles.customizeButtonText}>Customize Workouts</Text>
-          </TouchableOpacity>
+          {todayWorkout ? (
+            <DailyWorkout workout={todayWorkout} />
+          ) : (
+            <View style={styles.restDayCard}>
+              <Text style={styles.restDayText}>
+                Today is Rest Day! 
+                Take time to recover and prepare for tomorrow's workout.
+              </Text>
+            </View>
+          )}
+          
+          <View style={styles.scheduleCard}>
+            <Text style={styles.scheduleTitle}>Weekly Schedule</Text>
+            
+            {Array.from({ length: 7 }).map((_, i) => {
+              const dayIndex = (i + 1) % 7; // Start with Monday (1) at index 0
+              const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+              const dayName = dayNames[dayIndex];
+              
+              return (
+                <View key={i} style={todayIdx===dayIndex ? styles.rowHighlighted :styles.scheduleRow}>
+                  <Text style={styles.dayName}>{dayName}</Text>
+                  <Text style={styles.bodyPart}>{getWeeklyScheduleBodyPart(dayIndex)}</Text>
+                </View>
+              );
+            })}
+            
+            <TouchableOpacity 
+              style={styles.customizeButton}
+              onPress={() => navigation.navigate('Workout')}
+            >
+              <Text style={styles.customizeButtonText}>Customize Workouts</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 
@@ -117,8 +121,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#0F172A',
   },
+  scrollView: {
+    flex: 1,
+  },
   content: {
-    padding: 24,
+    padding: 16,
   },
   loadingContainer: {
     flex: 1,

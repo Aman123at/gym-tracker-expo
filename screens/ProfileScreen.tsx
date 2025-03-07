@@ -7,6 +7,7 @@ import WorkoutHistory from '../components/workout/WorkoutHistory';
 import ViewShot from 'react-native-view-shot';
 import { supabase } from '../utils/supabase';
 import * as FileSystem from 'expo-file-system';
+import GradientHeader from '../components/GradientHeader';
 
 export default function ProfileScreen() {
   const { session, signOut } = useAuth();
@@ -23,60 +24,58 @@ export default function ProfileScreen() {
   
   return (
     <View style={styles.container}>
+      <GradientHeader title="Profile" subtitle="Your account and progress" />
       <ScrollView contentContainerStyle={styles.scrollContent}>
-      <Text style={styles.header}>Profile</Text>
-      
-      <View style={styles.card}>
-        <Text style={styles.label}>Email</Text>
-        <Text style={styles.emailText}>{session?.user?.email}</Text>
-        
-        <TouchableOpacity 
-          style={styles.signOutButton}
-          onPress={handleSignOut}
-        >
-          <Text style={styles.signOutButtonText}>Sign Out</Text>
-        </TouchableOpacity>
-      </View>
+        <View style={styles.card}>
+          <Text style={styles.label}>Email</Text>
+          <Text style={styles.emailText}>{session?.user?.email}</Text>
+          
+          <TouchableOpacity 
+            style={styles.signOutButton}
+            onPress={handleSignOut}
+          >
+            <Text style={styles.signOutButtonText}>Sign Out</Text>
+          </TouchableOpacity>
+        </View>
 
         <ShareStreak streak={streak} />
       
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>App Statistics</Text>
-        
-        <View style={styles.statRow}>
-          <Text style={styles.statLabel}>Current Streak</Text>
-          <Text style={styles.statValue}>{streak?.current_streak || 0} {(streak?.current_streak || 0) === 1 ? 'Day':'Days'}</Text>
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>App Statistics</Text>
+          
+          <View style={styles.statRow}>
+            <Text style={styles.statLabel}>Current Streak</Text>
+            <Text style={styles.statValue}>{streak?.current_streak || 0} {(streak?.current_streak || 0) === 1 ? 'Day':'Days'}</Text>
+          </View>
+          
+          <View style={styles.statRow}>
+            <Text style={styles.statLabel}>Longest Streak</Text>
+            <Text style={styles.statValue}>{streak?.max_streak || 0} {(streak?.max_streak || 0) === 1 ? 'Day':'Days'}</Text>
+          </View>
+          
+          <View style={[styles.statRow, styles.lastStatRow]}>
+            <Text style={styles.statLabel}>Start Date</Text>
+            <Text style={styles.statValue}>
+              {streak?.start_date 
+                ? new Date(streak.start_date).toLocaleDateString() 
+                : 'Not started'}
+            </Text>
+          </View>
         </View>
+
+        <WorkoutHistory 
+          attendanceHistory={attendanceHistory}
+          workouts={workouts}
+        />
         
-        <View style={styles.statRow}>
-          <Text style={styles.statLabel}>Longest Streak</Text>
-          <Text style={styles.statValue}>{streak?.max_streak || 0} {(streak?.max_streak || 0) === 1 ? 'Day':'Days'}</Text>
-        </View>
-        
-        <View style={[styles.statRow, styles.lastStatRow]}>
-          <Text style={styles.statLabel}>Start Date</Text>
-          <Text style={styles.statValue}>
-            {streak?.start_date 
-              ? new Date(streak.start_date).toLocaleDateString() 
-              : 'Not started'}
+        <View style={styles.card}>
+          <Text style={styles.versionText}>
+            GymTrack v1.0.0
+          </Text>
+          <Text style={styles.versionSubtext}>
+            Developed with Expo and React Native
           </Text>
         </View>
-      </View>
-
-      {/* Add the new WorkoutHistory component */}
-      <WorkoutHistory 
-        attendanceHistory={attendanceHistory}
-        workouts={workouts}
-      />
-      
-      <View style={styles.card}>
-        <Text style={styles.versionText}>
-          GymTrack v1.0.0
-        </Text>
-        <Text style={styles.versionSubtext}>
-          Developed with Expo and React Native
-        </Text>
-      </View>
       </ScrollView>
     </View>
   );
@@ -93,17 +92,11 @@ const colors = {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
-    padding: 24, // p-6 (6 * 4)
+    backgroundColor: '#0F172A',
   },
   scrollContent: {
     paddingBottom: 20, // Add extra padding at the bottom for better scrolling
-  },
-  header: {
-    fontSize: 24, // text-2xl
-    fontWeight: 'bold',
-    color: colors.text,
-    marginBottom: 24, // mb-6
+    padding: 24,
   },
   card: {
     backgroundColor: colors.surface,

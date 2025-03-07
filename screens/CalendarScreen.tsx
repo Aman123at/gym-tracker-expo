@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import { useWorkout } from '../context/WorkoutContext';
+import GradientHeader from '../components/GradientHeader';
 
 export default function CalendarScreen() {
   const { attendanceHistory, markAttendance, getBodyPartForDay } = useWorkout();
@@ -36,59 +37,60 @@ export default function CalendarScreen() {
   
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Workout Calendar</Text>
-      
-      <Calendar
-        theme={{
-          backgroundColor: '#1E293B',
-          calendarBackground: '#1E293B',
-          textSectionTitleColor: '#F8FAFC',
-          selectedDayBackgroundColor: '#6366F1',
-          selectedDayTextColor: '#F8FAFC',
-          todayTextColor: '#EC4899',
-          dayTextColor: '#F8FAFC',
-          textDisabledColor: '#64748B',
-          dotColor: '#EC4899',
-          selectedDotColor: '#FFFFFF',
-          arrowColor: '#6366F1',
-          monthTextColor: '#F8FAFC',
-          indicatorColor: '#6366F1',
-          textDayFontWeight: '300',
-          textMonthFontWeight: 'bold',
-          textDayHeaderFontWeight: '300',
-        }}
-        onDayPress={(day:any) => setSelectedDate(day.dateString)}
-        markedDates={markedDates}
-        minDate={today}
-        maxDate={today}
-      />
-      
-      <View style={styles.dateCard}>
-        <Text style={styles.dateCardTitle}>
-          {dayNames[dayOfWeek]}, {selectedDateObj.toLocaleDateString()}
-        </Text>
+      <GradientHeader title="Workout Calendar" subtitle="Track your workout attendance" />
+      <ScrollView style={styles.scrollView}>
+        <Calendar
+          theme={{
+            backgroundColor: '#1E293B',
+            calendarBackground: '#1E293B',
+            textSectionTitleColor: '#F8FAFC',
+            selectedDayBackgroundColor: '#6366F1',
+            selectedDayTextColor: '#F8FAFC',
+            todayTextColor: '#EC4899',
+            dayTextColor: '#F8FAFC',
+            textDisabledColor: '#64748B',
+            dotColor: '#EC4899',
+            selectedDotColor: '#FFFFFF',
+            arrowColor: '#6366F1',
+            monthTextColor: '#F8FAFC',
+            indicatorColor: '#6366F1',
+            textDayFontWeight: '300',
+            textMonthFontWeight: 'bold',
+            textDayHeaderFontWeight: '300',
+          }}
+          onDayPress={(day:any) => setSelectedDate(day.dateString)}
+          markedDates={markedDates}
+          minDate={today}
+          maxDate={today}
+        />
         
-        <Text style={styles.workoutText}>
-          {dayOfWeek === 0 
-            ? 'Rest Day' 
-            : `Workout: ${bodyPart}`
-          }
-        </Text>
-        
-        {dayOfWeek !== 0 && (
-          <TouchableOpacity 
-            style={[
-              styles.actionButton, 
-              isAttended ? styles.completedButton : styles.primaryButton
-            ]}
-            onPress={() => isAttended ? {} : markAttendance(selectedDate)}
-          >
-            <Text style={styles.buttonText}>
-              {isAttended ? 'Workout Completed ✓' : 'Mark as Completed'}
-            </Text>
-          </TouchableOpacity>
-        )}
-      </View>
+        <View style={styles.dateCard}>
+          <Text style={styles.dateCardTitle}>
+            {dayNames[dayOfWeek]}, {selectedDateObj.toLocaleDateString()}
+          </Text>
+          
+          <Text style={styles.workoutText}>
+            {dayOfWeek === 0 
+              ? 'Rest Day' 
+              : `Workout: ${bodyPart}`
+            }
+          </Text>
+          
+          {dayOfWeek !== 0 && (
+            <TouchableOpacity 
+              style={[
+                styles.actionButton, 
+                isAttended ? styles.completedButton : styles.primaryButton
+              ]}
+              onPress={() => isAttended ? {} : markAttendance(selectedDate)}
+            >
+              <Text style={styles.buttonText}>
+                {isAttended ? 'Workout Completed ✓' : 'Mark as Completed'}
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      </ScrollView>
     </View>
   );
 }
@@ -106,14 +108,11 @@ const colors = {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
-    padding: 16,         // p-4
+    backgroundColor: '#0F172A',
   },
-  header: {
-    fontSize: 24,        // text-2xl
-    fontWeight: 'bold',
-    color: colors.text,
-    marginBottom: 16,    // mb-4
+  scrollView: {
+    flex: 1,
+    padding: 16,
   },
   dateCard: {
     backgroundColor: colors.surface,

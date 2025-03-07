@@ -15,6 +15,7 @@ import { useWorkout } from '../context/WorkoutContext';
 import { Workout, Exercise, BodyPart } from '../utils/supabase';
 import { Ionicons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
+import GradientHeader from '../components/GradientHeader';
 
 export default function WorkoutScreen() {
   const { 
@@ -179,243 +180,247 @@ export default function WorkoutScreen() {
   const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.title}>Customize Workouts</Text>
+    <View style={styles.container}>
+      <GradientHeader title="Weekly Workouts" subtitle="Customize your exercise plan" />
       
-      <View style={styles.infoCard}>
-        <Text style={styles.infoText}>
-          Customize your weekly workout schedule by assigning different body parts and exercises to each day.
-        </Text>
-      </View>
-      
-      {workouts
-        .sort((a, b) => a.day_of_week - b.day_of_week)
-        .map(workout => (
-          workout.day_of_week !== 0 ? (
-            <View 
-              key={workout.id} 
-              style={styles.workoutCard}
-            >
-              <View style={styles.workoutHeader}>
-                <Text style={styles.dayName}>
-                  {dayNames[workout.day_of_week]}
+      <ScrollView style={styles.scrollView}>
+        <Text style={styles.title}>Customize Workouts</Text>
+        
+        <View style={styles.infoCard}>
+          <Text style={styles.infoText}>
+            Customize your weekly workout schedule by assigning different body parts and exercises to each day.
+          </Text>
+        </View>
+        
+        {workouts
+          .sort((a, b) => a.day_of_week - b.day_of_week)
+          .map(workout => (
+            workout.day_of_week !== 0 ? (
+              <View 
+                key={workout.id} 
+                style={styles.workoutCard}
+              >
+                <View style={styles.workoutHeader}>
+                  <Text style={styles.dayName}>
+                    {dayNames[workout.day_of_week]}
+                  </Text>
+                  
+                  <TouchableOpacity 
+                    style={styles.editButton}
+                    onPress={() => openEditModal(workout)}
+                  >
+                    <Ionicons name="pencil" size={20} color="#F8FAFC" />
+                  </TouchableOpacity>
+                </View>
+                
+                <Text style={styles.bodyPartText}>
+                  {workout.body_part}
                 </Text>
                 
-                <TouchableOpacity 
-                  style={styles.editButton}
-                  onPress={() => openEditModal(workout)}
-                >
-                  <Ionicons name="pencil" size={20} color="#F8FAFC" />
+                {workout.exercises && workout.exercises.length > 0 ? (
+                  <View style={styles.exercisesList}>
+                    {workout.exercises.map((exercise, index) => (
+                      <Text key={index} style={styles.exerciseItem}>
+                        {exercise.name} · {exercise.sets}×{exercise.reps}
+                      </Text>
+                    ))}
+                  </View>
+                ) : (
+                  <Text style={styles.noExercisesText}>
+                    No exercises configured
+                  </Text>
+                )}
+              </View>
+            ) : null
+          ))}
+        
+        <View style={styles.noteCard}>
+          <Text style={styles.noteText}>
+            Note: Sunday is always a rest day
+          </Text>
+        </View>
+
+        {/* Edit Modal */}
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={modalVisible}
+          onRequestClose={closeModal}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>
+                  Edit {editingWorkout ? dayNames[editingWorkout.day_of_week] : ''} Workout
+                </Text>
+                <TouchableOpacity onPress={closeModal} style={styles.closeButton}>
+                  <Ionicons name="close" size={24} color="#F8FAFC" />
                 </TouchableOpacity>
               </View>
-              
-              <Text style={styles.bodyPartText}>
-                {workout.body_part}
-              </Text>
-              
-              {workout.exercises && workout.exercises.length > 0 ? (
-                <View style={styles.exercisesList}>
-                  {workout.exercises.map((exercise, index) => (
-                    <Text key={index} style={styles.exerciseItem}>
-                      {exercise.name} · {exercise.sets}×{exercise.reps}
-                    </Text>
-                  ))}
+
+              <ScrollView style={styles.modalBody}>
+                <Text style={styles.sectionTitle}>Body Part</Text>
+                <View style={styles.pickerContainer}>
+                  <Picker
+                    selectedValue={selectedBodyPart}
+                    onValueChange={(itemValue) => setSelectedBodyPart(itemValue)}
+                    style={styles.picker}
+                    dropdownIconColor="#F8FAFC"
+                  >
+                    <Picker.Item label="Select Body Part" value="" />
+                    {bodyParts.map((part) => (
+                      <Picker.Item 
+                        key={part.id} 
+                        label={part.name} 
+                        value={part.name}
+                        enabled={
+                          part.name === editingWorkout?.body_part || 
+                          !usedBodyParts.includes(part.name) ||
+                          usedBodyParts.filter(bp => bp === part.name).length === 0
+                        }
+                      />
+                    ))}
+                  </Picker>
                 </View>
-              ) : (
-                <Text style={styles.noExercisesText}>
-                  No exercises configured
-                </Text>
-              )}
-            </View>
-          ) : null
-        ))}
-      
-      <View style={styles.noteCard}>
-        <Text style={styles.noteText}>
-          Note: Sunday is always a rest day
-        </Text>
-      </View>
 
-      {/* Edit Modal */}
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={closeModal}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>
-                Edit {editingWorkout ? dayNames[editingWorkout.day_of_week] : ''} Workout
-              </Text>
-              <TouchableOpacity onPress={closeModal} style={styles.closeButton}>
-                <Ionicons name="close" size={24} color="#F8FAFC" />
-              </TouchableOpacity>
-            </View>
-
-            <ScrollView style={styles.modalBody}>
-              <Text style={styles.sectionTitle}>Body Part</Text>
-              <View style={styles.pickerContainer}>
-                <Picker
-                  selectedValue={selectedBodyPart}
-                  onValueChange={(itemValue) => setSelectedBodyPart(itemValue)}
-                  style={styles.picker}
-                  dropdownIconColor="#F8FAFC"
-                >
-                  <Picker.Item label="Select Body Part" value="" />
-                  {bodyParts.map((part) => (
-                    <Picker.Item 
-                      key={part.id} 
-                      label={part.name} 
-                      value={part.name}
-                      enabled={
-                        part.name === editingWorkout?.body_part || 
-                        !usedBodyParts.includes(part.name) ||
-                        usedBodyParts.filter(bp => bp === part.name).length === 0
-                      }
-                    />
-                  ))}
-                </Picker>
-              </View>
-
-              <Text style={styles.sectionTitle}>Exercises</Text>
-              
-              {selectedBodyPart ? (
-                <>
-                  <View style={styles.addExerciseRow}>
-                    <View style={styles.exercisePickerContainer}>
-                      <Picker
-                        selectedValue={newExercise}
-                        onValueChange={(itemValue) => setNewExercise(itemValue)}
-                        style={styles.exercisePicker}
-                        dropdownIconColor="#F8FAFC"
-                        enabled={!!selectedBodyPart}
+                <Text style={styles.sectionTitle}>Exercises</Text>
+                
+                {selectedBodyPart ? (
+                  <>
+                    <View style={styles.addExerciseRow}>
+                      <View style={styles.exercisePickerContainer}>
+                        <Picker
+                          selectedValue={newExercise}
+                          onValueChange={(itemValue) => setNewExercise(itemValue)}
+                          style={styles.exercisePicker}
+                          dropdownIconColor="#F8FAFC"
+                          enabled={!!selectedBodyPart}
+                        >
+                          <Picker.Item label="Select Exercise" value="" />
+                          {availableExercises.map((exercise) => (
+                            <Picker.Item 
+                              key={exercise.id} 
+                              label={exercise.name} 
+                              value={exercise.id} 
+                            />
+                          ))}
+                        </Picker>
+                      </View>
+                      
+                      <TouchableOpacity 
+                        style={[
+                          styles.addButton, 
+                          !newExercise ? styles.addButtonDisabled : null
+                        ]}
+                        onPress={handleAddExercise}
+                        disabled={!newExercise}
                       >
-                        <Picker.Item label="Select Exercise" value="" />
-                        {availableExercises.map((exercise) => (
-                          <Picker.Item 
-                            key={exercise.id} 
-                            label={exercise.name} 
-                            value={exercise.id} 
-                          />
-                        ))}
-                      </Picker>
+                        <Ionicons name="add" size={24} color="#F8FAFC" />
+                      </TouchableOpacity>
                     </View>
                     
-                    <TouchableOpacity 
-                      style={[
-                        styles.addButton, 
-                        !newExercise ? styles.addButtonDisabled : null
-                      ]}
-                      onPress={handleAddExercise}
-                      disabled={!newExercise}
-                    >
-                      <Ionicons name="add" size={24} color="#F8FAFC" />
-                    </TouchableOpacity>
-                  </View>
-                  
-                  {workoutExercises.length === 0 ? (
-                    <Text style={styles.noExercisesText}>
-                      No exercises added yet
-                    </Text>
-                  ) : (
-                    <View style={styles.exercisesContainer}>
-                      {workoutExercises.map((exercise:Exercise, index:number) => (
-                        <View key={index} style={styles.exerciseRow}>
-                          <View style={styles.exerciseInfo}>
-                            <Text style={styles.exerciseName}>{exercise.name}</Text>
-                            
-                            <View style={styles.exerciseControls}>
-                              <View style={styles.controlGroup}>
-                                <Text style={styles.controlLabel}>Sets</Text>
-                                <View style={styles.counterContainer}>
-                                  <TouchableOpacity 
-                                    style={styles.counterButton}
-                                    onPress={() => updateExerciseSets(exercise.id, Math.max(1, (exercise.sets || 1) - 1))}
-                                  >
-                                    <Ionicons name="remove" size={16} color="#F8FAFC" />
-                                  </TouchableOpacity>
-                                  
-                                  <Text style={styles.counterValue}>{exercise.sets}</Text>
-                                  
-                                  <TouchableOpacity 
-                                    style={styles.counterButton}
-                                    onPress={() => updateExerciseSets(exercise.id, (exercise.sets || 1) + 1)}
-                                  >
-                                    <Ionicons name="add" size={16} color="#F8FAFC" />
-                                  </TouchableOpacity>
-                                </View>
-                              </View>
+                    {workoutExercises.length === 0 ? (
+                      <Text style={styles.noExercisesText}>
+                        No exercises added yet
+                      </Text>
+                    ) : (
+                      <View style={styles.exercisesContainer}>
+                        {workoutExercises.map((exercise:Exercise, index:number) => (
+                          <View key={index} style={styles.exerciseRow}>
+                            <View style={styles.exerciseInfo}>
+                              <Text style={styles.exerciseName}>{exercise.name}</Text>
                               
-                              <View style={styles.controlGroup}>
-                                <Text style={styles.controlLabel}>Reps</Text>
-                                <View style={styles.counterContainer}>
-                                  <TouchableOpacity 
-                                    style={styles.counterButton}
-                                    onPress={() => updateExerciseReps(exercise.id, Math.max(1, (exercise.reps || 1) - 1))}
-                                  >
-                                    <Ionicons name="remove" size={16} color="#F8FAFC" />
-                                  </TouchableOpacity>
-                                  
-                                  <Text style={styles.counterValue}>{exercise.reps}</Text>
-                                  
-                                  <TouchableOpacity 
-                                    style={styles.counterButton}
-                                    onPress={() => updateExerciseReps(exercise.id, (exercise.reps || 1) + 1)}
-                                  >
-                                    <Ionicons name="add" size={16} color="#F8FAFC" />
-                                  </TouchableOpacity>
+                              <View style={styles.exerciseControls}>
+                                <View style={styles.controlGroup}>
+                                  <Text style={styles.controlLabel}>Sets</Text>
+                                  <View style={styles.counterContainer}>
+                                    <TouchableOpacity 
+                                      style={styles.counterButton}
+                                      onPress={() => updateExerciseSets(exercise.id, Math.max(1, (exercise.sets || 1) - 1))}
+                                    >
+                                      <Ionicons name="remove" size={16} color="#F8FAFC" />
+                                    </TouchableOpacity>
+                                    
+                                    <Text style={styles.counterValue}>{exercise.sets}</Text>
+                                    
+                                    <TouchableOpacity 
+                                      style={styles.counterButton}
+                                      onPress={() => updateExerciseSets(exercise.id, (exercise.sets || 1) + 1)}
+                                    >
+                                      <Ionicons name="add" size={16} color="#F8FAFC" />
+                                    </TouchableOpacity>
+                                  </View>
+                                </View>
+                                
+                                <View style={styles.controlGroup}>
+                                  <Text style={styles.controlLabel}>Reps</Text>
+                                  <View style={styles.counterContainer}>
+                                    <TouchableOpacity 
+                                      style={styles.counterButton}
+                                      onPress={() => updateExerciseReps(exercise.id, Math.max(1, (exercise.reps || 1) - 1))}
+                                    >
+                                      <Ionicons name="remove" size={16} color="#F8FAFC" />
+                                    </TouchableOpacity>
+                                    
+                                    <Text style={styles.counterValue}>{exercise.reps}</Text>
+                                    
+                                    <TouchableOpacity 
+                                      style={styles.counterButton}
+                                      onPress={() => updateExerciseReps(exercise.id, (exercise.reps || 1) + 1)}
+                                    >
+                                      <Ionicons name="add" size={16} color="#F8FAFC" />
+                                    </TouchableOpacity>
+                                  </View>
                                 </View>
                               </View>
                             </View>
+                            
+                            <TouchableOpacity
+                              style={styles.removeButton}
+                              onPress={() => handleRemoveExercise(exercise.id)}
+                            >
+                              <Ionicons name="trash" size={20} color="#F43F5E" />
+                            </TouchableOpacity>
                           </View>
-                          
-                          <TouchableOpacity
-                            style={styles.removeButton}
-                            onPress={() => handleRemoveExercise(exercise.id)}
-                          >
-                            <Ionicons name="trash" size={20} color="#F43F5E" />
-                          </TouchableOpacity>
-                        </View>
-                      ))}
-                    </View>
-                  )}
-                </>
-              ) : (
-                <Text style={styles.selectBodyPartPrompt}>
-                  Please select a body part first
-                </Text>
-              )}
-            </ScrollView>
-
-            <View style={styles.modalFooter}>
-              <TouchableOpacity 
-                style={styles.cancelButton}
-                onPress={closeModal}
-              >
-                <Text style={styles.buttonText}>Cancel</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity 
-                style={[
-                  styles.saveButton,
-                  (!selectedBodyPart || workoutExercises.length === 0 || isSaving) ? styles.saveButtonDisabled : null
-                ]}
-                onPress={handleSave}
-                disabled={!selectedBodyPart || workoutExercises.length === 0 || isSaving}
-              >
-                {isSaving ? (
-                  <ActivityIndicator size={24} color="#FFFFFF" />
+                        ))}
+                      </View>
+                    )}
+                  </>
                 ) : (
-                  <Text style={styles.buttonText}>Save</Text>
+                  <Text style={styles.selectBodyPartPrompt}>
+                    Please select a body part first
+                  </Text>
                 )}
-              </TouchableOpacity>
+              </ScrollView>
+
+              <View style={styles.modalFooter}>
+                <TouchableOpacity 
+                  style={styles.cancelButton}
+                  onPress={closeModal}
+                >
+                  <Text style={styles.buttonText}>Cancel</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                  style={[
+                    styles.saveButton,
+                    (!selectedBodyPart || workoutExercises.length === 0 || isSaving) ? styles.saveButtonDisabled : null
+                  ]}
+                  onPress={handleSave}
+                  disabled={!selectedBodyPart || workoutExercises.length === 0 || isSaving}
+                >
+                  {isSaving ? (
+                    <ActivityIndicator size={24} color="#FFFFFF" />
+                  ) : (
+                    <Text style={styles.buttonText}>Save</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
-        </View>
-      </Modal>
-    </ScrollView>
+        </Modal>
+      </ScrollView>
+    </View>
   );
 }
 
@@ -423,7 +428,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#0F172A',
-    padding: 16,
   },
   title: {
     fontSize: 24,
@@ -659,6 +663,10 @@ const styles = StyleSheet.create({
     color: '#94A3B8',
     fontStyle: 'italic',
     textAlign: 'center',
+    padding: 16,
+  },
+  scrollView: {
+    flex: 1,
     padding: 16,
   },
 });
