@@ -46,7 +46,7 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
     <ScrollView style={styles.container}>
       <View style={styles.content}>
         <Text style={styles.title}>
-          Welcome to GymTrack
+          GymTrack
         </Text>
         
         <StreakCounter streak={streak} />

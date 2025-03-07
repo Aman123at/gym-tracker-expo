@@ -22,7 +22,7 @@ export default function DailyWorkout({ workout }: DailyWorkoutProps) {
       )):null}
       
       <Text style={styles.instructions}>
-        Complete 3 sets of 12 reps for each exercise, rest 60-90 seconds between sets.
+        Rest 60-90 seconds between sets.
       </Text>
     </View>
   </View>
