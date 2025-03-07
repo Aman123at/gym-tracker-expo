@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Alert, Styl
 import { supabase } from '../../utils/supabase';
 
 export default function Signup({ navigation }: { navigation: any }) {
+  const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -14,12 +15,22 @@ export default function Signup({ navigation }: { navigation: any }) {
       return;
     }
 
+    if (!fullName.trim()) {
+      Alert.alert('Error', 'Please enter your full name');
+      return;
+    }
+
     setLoading(true);
     
     try {
       const { error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          data: {
+            full_name: fullName,
+          },
+        },
       });
 
       if (error) throw error;
@@ -47,6 +58,19 @@ export default function Signup({ navigation }: { navigation: any }) {
       Create Account
     </Text>
     
+    <View style={styles.inputContainer}>
+      <Text style={styles.label}>Full Name</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Enter your full name"
+        placeholderTextColor="#64748B"
+        onChangeText={(text) => setFullName(text)}
+        value={fullName}
+        autoCapitalize="words"
+        maxLength={25}
+      />
+    </View>
+
     <View style={styles.inputContainer}>
       <Text style={styles.label}>Email</Text>
       <TextInput
